@@ -227,7 +227,11 @@ Small, dependency light core. The Rust statistics engine has no I/O and no Pytho
 
 ## Roadmap
 
-Not yet implemented: persistent storage of eval run history (Arrow and Parquet backed, queryable through DuckDB), a browser based dashboard for visualizing confidence intervals and sequential test trajectories over time, a hosted multi tenant gateway, and R language bindings for the statistical core.
+Implemented: persistent storage of eval run history (Arrow and Parquet backed, queryable through DuckDB), and a browser based dashboard (`dashboard/`) for visualizing confidence intervals, effect sizes, sequential test trajectories, and score trends over time, computed by the same Rust core compiled to WebAssembly.
+
+Not yet implemented: R language bindings for the statistical core.
+
+**Hosted multi-tenant gateway.** The original design included a `gateway/` layer (Go, per-team authentication, hosted storage) for teams who would rather point their CI at a hosted endpoint than self-host. This is deliberately not built yet. Trizaval is a free, self-hosted library, and running a multi-tenant hosted service means ongoing server costs, security responsibility, and uptime commitments that are out of scope for a project maintained without funding. If a company or volunteer wants to sponsor hosting or contribute this layer, it is a welcome addition. See `crates/` for where a `trizaval-gateway` crate would live, and open an issue if you would like to help build or fund it.
 
 ## License
 
