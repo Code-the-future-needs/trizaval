@@ -1,15 +1,16 @@
 //! WASM bindings exposing trizaval-core's statistical primitives to
 //! JavaScript, for the browser-based dashboard. Compiled via
-//! wasm-pack. This crate deliberately only wraps bootstrap and
-//! effect size for the first version -- the two methods the
-//! dashboard's initial charts (confidence interval bars, trend
-//! lines) actually need. Sequential test trajectories and judge
-//! calibration are not yet exposed here; see the dashboard's own
-//! TODO once its first charts are working.
+//! wasm-pack. Currently wraps bootstrap, effect size, and sequential
+//! testing -- the three methods the dashboard's charts need
+//! (confidence interval bars, effect size comparisons, and
+//! sequential test trajectories). Judge calibration (position/length
+//! bias) is not yet exposed here, since no dashboard chart currently
+//! visualizes it.
 
 use serde::Serialize;
 use trizaval_core::bootstrap;
 use trizaval_core::effect_size;
+use trizaval_core::sequential::{SequentialDecision, SequentialTest};
 use wasm_bindgen::prelude::*;
 
 #[derive(Serialize)]
@@ -77,4 +78,38 @@ pub fn cohens_d(baseline: Vec<f64>, treatment: Vec<f64>) -> Result<JsValue, JsEr
     };
 
     serde_wasm_bindgen::to_value(&wasm_result).map_err(|e| JsError::new(&e.to_string()))
+}
+
+#[derive(Serialize)]
+pub struct WasmSequentialUpdate {
+    pub n: usize,
+    pub likelihood_ratio: f64,
+    pub rejected: bool,
+}
+
+/// Stateful sequential test wrapper for JS. Construct once per
+/// trajectory, then call `update(x)` once per paired observation, in
+/// order. Mirrors `SequentialTest` from the Python bindings.
+#[wasm_bindgen]
+pub struct WasmSequentialTest {
+    inner: SequentialTest,
+}
+
+#[wasm_bindgen]
+impl WasmSequentialTest {
+    #[wasm_bindgen(constructor)]
+    pub fn new(alpha: f64, tau: f64) -> Result<WasmSequentialTest, JsError> {
+        let inner = SequentialTest::new(alpha, tau).map_err(|e| JsError::new(&e.to_string()))?;
+        Ok(WasmSequentialTest { inner })
+    }
+
+    pub fn update(&mut self, x: f64) -> Result<JsValue, JsError> {
+        let update = self.inner.update(x);
+        let wasm_update = WasmSequentialUpdate {
+            n: update.n,
+            likelihood_ratio: update.likelihood_ratio,
+            rejected: update.decision == SequentialDecision::RejectNull,
+        };
+        serde_wasm_bindgen::to_value(&wasm_update).map_err(|e| JsError::new(&e.to_string()))
+    }
 }

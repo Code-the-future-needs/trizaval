@@ -7,7 +7,9 @@
 export interface CandidateReportData {
   candidate_name: string
   baseline_scores: number[]
+  baseline_test_case_ids?: string[]
   candidate_scores: number[]
+  candidate_test_case_ids?: string[]
   statistic_result: {
     method: string
     point_estimate?: number
@@ -29,10 +31,12 @@ export interface SuiteReportData {
 export const sampleReport: SuiteReportData = {
   suite_name: 'arithmetic-sanity-check',
   candidate_reports: [
-    {
+{
       candidate_name: 'candidate-gpt4o',
       baseline_scores: [1.0, 1.0, 1.0, 1.0],
+      baseline_test_case_ids: ['add-1', 'add-2', 'mult-1', 'sub-1'],
       candidate_scores: [1.0, 0.0, 1.0, 1.0],
+      candidate_test_case_ids: ['add-1', 'add-2', 'mult-1', 'sub-1'],
       statistic_result: {
         method: 'bootstrap',
         point_estimate: 0.75,

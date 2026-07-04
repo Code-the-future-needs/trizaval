@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { ConfidenceIntervalChart } from './ConfidenceIntervalChart'
 import { ScoreTrendChart } from './ScoreTrendChart'
+import { EffectSizeView } from './EffectSizeView'
+import { SequentialTrajectoryChart } from './SequentialTrajectoryChart'
 import { sampleReport, sampleTrend, type SuiteReportData, type TrendData } from './sampleData'
 
 function App() {
@@ -74,7 +76,15 @@ function App() {
         )}
       </div>
 
-      <ConfidenceIntervalChart report={report} />
+<ConfidenceIntervalChart report={report} />
+
+      <hr style={{ margin: '2rem 0', borderColor: '#333' }} />
+
+      <EffectSizeView report={report} />
+
+      <hr style={{ margin: '2rem 0', borderColor: '#333' }} />
+
+      <SequentialTrajectoryChart report={report} />
 
       <hr style={{ margin: '2rem 0', borderColor: '#333' }} />
 

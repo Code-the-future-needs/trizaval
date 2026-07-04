@@ -70,7 +70,9 @@ def _candidate_report_to_dict(cr: CandidateReport) -> dict:
     return {
         "candidate_name": cr.candidate_name,
         "baseline_scores": cr.baseline_scores,
+        "baseline_test_case_ids": [r.test_case_id for r in cr.baseline_results],
         "candidate_scores": cr.candidate_scores,
+        "candidate_test_case_ids": [r.test_case_id for r in cr.candidate_results],
         "statistic_result": _statistic_to_dict(cr.statistic_result),
         "length_bias_applied": cr.length_bias_applied,
         "baseline_length_bias": _length_bias_to_dict(cr.baseline_length_bias),
@@ -79,7 +81,6 @@ def _candidate_report_to_dict(cr: CandidateReport) -> dict:
         "raw_candidate_scores": cr.raw_candidate_scores,
         "errors": cr.errors,
     }
-
 
 def format_json(report: SuiteReport) -> str:
     data = {

@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import type { SuiteReportData } from './sampleData'
+import { loadWasm } from './wasmLoader'
 
 interface ChartRow {
   candidate: string
@@ -37,15 +38,9 @@ export function ConfidenceIntervalChart({ report }: { report: SuiteReportData })
   useEffect(() => {
     let cancelled = false
 
-    async function computeFromWasm() {
+async function computeFromWasm() {
       try {
-        // Dynamic import so the WASM binary only loads when this
-        // component actually mounts, not on initial app load.
-        const wasmModule = (await import(
-          /* @vite-ignore */ '../wasm/trizaval_wasm.js'
-        )) as { default: (path?: unknown) => Promise<unknown> } & WasmModule
-
-        await wasmModule.default()
+        const wasmModule = (await loadWasm()) as unknown as WasmModule
 
         const computed: ChartRow[] = report.candidate_reports.map((cr) => {
           const result = wasmModule.block_bootstrap_mean(
