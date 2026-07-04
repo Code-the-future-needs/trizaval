@@ -56,3 +56,45 @@ class TestCliRun:
         assert exit_code == 1
         captured = capsys.readouterr()
         assert "error" in captured.err.lower()
+
+
+class TestCliStorageIntegration:
+    def test_storage_dir_persists_run(self, tmp_path, capsys):
+        from trizaval.storage.arrow_store import read_history
+
+        with patch(
+            "trizaval.harness.providers.openai_provider.OpenAIProvider.generate", _always_correct_generate
+        ):
+            exit_code = main(["run", "suites/example_suite.yaml", "--storage-dir", str(tmp_path)])
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "Saved run to" in captured.err
+
+        table = read_history(tmp_path, "arithmetic-sanity-check")
+        assert table.num_rows == 1
+
+    def test_multiple_runs_with_storage_dir_accumulate(self, tmp_path):
+        from trizaval.storage.arrow_store import read_history
+
+        with patch(
+            "trizaval.harness.providers.openai_provider.OpenAIProvider.generate", _always_correct_generate
+        ):
+            main(["run", "suites/example_suite.yaml", "--storage-dir", str(tmp_path)])
+            main(["run", "suites/example_suite.yaml", "--storage-dir", str(tmp_path)])
+
+        table = read_history(tmp_path, "arithmetic-sanity-check")
+        assert table.num_rows == 2
+
+    def test_without_storage_dir_nothing_is_persisted(self, tmp_path, capsys):
+        with patch(
+            "trizaval.harness.providers.openai_provider.OpenAIProvider.generate", _always_correct_generate
+        ):
+            exit_code = main(["run", "suites/example_suite.yaml"])
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "Saved run to" not in captured.err
+        # No file should exist anywhere under tmp_path since we never
+        # pointed storage at it.
+        assert list(tmp_path.iterdir()) == []

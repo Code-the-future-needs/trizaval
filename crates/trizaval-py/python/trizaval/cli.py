@@ -139,6 +139,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     run_parser = subparsers.add_parser("run", help="Run an eval suite from a YAML file")
     run_parser.add_argument("suite_path", help="Path to a suite YAML config file")
     run_parser.add_argument("--format", choices=["text", "json"], default="text")
+    run_parser.add_argument(
+        "--storage-dir",
+        default=None,
+        help="If set, persist this run's results as a new row in <storage_dir>/<suite_name>.parquet, "
+        "in addition to printing the report.",
+    )
 
     return parser
 
@@ -164,11 +170,24 @@ def main(argv: Optional[list[str]] = None) -> int:
             print(format_json(report))
         else:
             print(format_text(report))
+
+        if args.storage_dir:
+            # Imported here, not at module top level, so that
+            # `trizaval.cli` doesn't hard-require pyarrow/duckdb for
+            # users who only ever run without --storage-dir.
+            from trizaval.storage.arrow_store import StorageError, append_run
+
+            try:
+                path = append_run(report, args.storage_dir)
+            except StorageError as e:
+                print(f"warning: run completed but failed to save to storage: {e}", file=sys.stderr)
+                return 0  # the eval run itself succeeded; storage failure is reported, not fatal
+            print(f"Saved run to {path}", file=sys.stderr)
+
         return 0
 
     parser.print_help()
     return 1
-
 
 if __name__ == "__main__":
     sys.exit(main())
