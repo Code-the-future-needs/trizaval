@@ -1,75 +1,82 @@
-# React + TypeScript + Vite
+# Trizaval Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A browser-based dashboard for visualizing Trizaval eval results: confidence intervals and score trends, computed by the same Rust statistical engine used everywhere else in the project, compiled to WebAssembly and run entirely client side.
 
-Currently, two official plugins are available:
+No backend, no server, no data leaves your browser. You load a JSON file exported by the Trizaval CLI, and the dashboard recomputes and renders the statistics locally.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Why WebAssembly
 
-## React Compiler
+The dashboard does not reimplement any statistics in JavaScript. Instead, `crates/trizaval-wasm` compiles the real `trizaval-core` Rust crate, the same one used by the Python bindings and the Rust CLI, to a WebAssembly module. This guarantees the numbers shown here are identical to what the CLI and Python library would compute, with no risk of a second implementation silently drifting from the first.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## What is currently supported
 
-## Expanding the ESLint configuration
+**Confidence interval chart**
+Upload a suite report produced by:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+python3 -m trizaval.cli run suite.yaml --format json
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The dashboard reads each candidate's raw scores from the report, recomputes a block bootstrap confidence interval live in the browser, and renders it as a bar chart with asymmetric error bars showing the true lower and upper bounds.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Score trend chart**
+Upload a trend export produced by:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+python3 -m trizaval.cli trend <storage_dir> <suite_name> <candidate_name>
 ```
+
+Renders a candidate's mean score across every recorded run in your eval history (see the root README's Storage section for how run history accumulates), as a line chart over time.
+
+## Running locally
+
+From this directory:
+
+```bash
+npm install
+npm run dev
+```
+
+Then open the printed local URL (typically `http://localhost:5173`) in your browser.
+
+The dashboard imports a compiled WebAssembly module from `./wasm`, which is not committed to the repository (it is a build artifact, like `target/` or a `.so` file). Build it first from the repository root:
+
+```bash
+cd ../crates/trizaval-wasm
+wasm-pack build --target web --out-dir ../../dashboard/wasm
+```
+
+You will need [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/) installed:
+
+```bash
+cargo install wasm-pack
+```
+
+## Building for production
+
+```bash
+npm run build
+```
+
+Output goes to `dist/`, a static site with no server requirements, deployable to any static host.
+
+## Project structure
+
+dashboard/
+├── src/
+│   ├── App.tsx                     # top-level layout, file upload handling
+│   ├── ConfidenceIntervalChart.tsx # loads WASM, computes and renders bootstrap CIs
+│   ├── ScoreTrendChart.tsx         # renders a score trend export as a line chart
+│   └── sampleData.ts               # sample data matching real CLI output shapes,
+│                                       shown before a user uploads their own file
+├── wasm/                           # NOT committed; build output from trizaval-wasm
+└── vite.config.ts                  # includes vite-plugin-wasm and esnext build target,
+both required for loading the WASM module
+
+## Known limitations
+
+This is an early version, intentionally scoped narrowly rather than built out speculatively:
+
+- Only two chart types exist: bootstrap confidence intervals and score trends. Sequential test trajectories and effect size visualizations are not yet implemented.
+- Only `block_bootstrap_mean` and `cohens_d` are exposed through the WASM bindings so far, matching what the current charts need. See `crates/trizaval-wasm/src/lib.rs` for the exact exposed surface.
+- File loading is manual (a file picker), not a live connection to a running eval or a storage directory. Every chart update requires exporting a new JSON file via the CLI and re-uploading it.
