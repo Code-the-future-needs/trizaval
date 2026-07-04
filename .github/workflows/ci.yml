@@ -63,11 +63,10 @@ jobs:
 
       - name: Create virtual environment
         run: python -m venv .venv
-
       - name: Install maturin and test dependencies
         run: |
           source .venv/bin/activate
-          pip install maturin pytest pytest-mock pydantic pyyaml openai anthropic
+          pip install maturin pytest pytest-mock pydantic pyyaml openai anthropic pyarrow duckdb pytz
 
       - name: Build and install trizaval extension
         working-directory: crates/trizaval-py
