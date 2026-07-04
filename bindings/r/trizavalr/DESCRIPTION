@@ -1,0 +1,25 @@
+Package: trizavalr
+Title: Statistically Rigorous Evaluation Tooling for AI Systems
+Version: 0.1.0
+Authors@R:
+    person("Jason Kagaba", "Contributors", , "atuhurrasolomon47@gmail.com", role = c("aut", "cre"))
+Description: R bindings to the Trizaval statistical engine, a Rust core
+    providing block bootstrap confidence intervals and effect size
+    estimation (Cohen's d and Hedges' g) for comparing evaluation
+    results from non-deterministic AI systems. These bindings expose
+    the same underlying Rust implementation used by Trizaval's Python
+    package and command line tool, so results are identical across
+    languages.
+License: Apache License (>= 2)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Config/rextendr/version: 0.5.0
+SystemRequirements: Cargo (Rust's package manager), rustc >= 1.65.0
+Depends:
+    R (>= 4.2)
+Config/roxygen2/version: 8.0.0
+URL: https://github.com/Code-the-future-needs/trizaval
+BugReports: https://github.com/Code-the-future-needs/trizaval/issues
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

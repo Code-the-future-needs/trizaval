@@ -6,6 +6,9 @@ members = [
     "crates/trizaval-cli",
     "crates/trizaval-wasm",
 ]
+exclude = [
+    "bindings/r/trizavalr/src/rust",
+]
 
 [workspace.package]
 version = "0.1.0"
