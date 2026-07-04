@@ -1,0 +1,30 @@
+# Rust build artifacts (Cargo.lock IS committed -- trizaval-cli is a
+# binary, and reproducible builds matter more than lockfile churn)
+/target/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+build/
+dist/
+crates/trizaval-py/target/
+crates/trizaval-py/.venv/
+
+
+*.so
+*.pyd
+
+# Editor/OS noise
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+.env
+.env.*
+
+# pytest cache
+.pytest_cache/

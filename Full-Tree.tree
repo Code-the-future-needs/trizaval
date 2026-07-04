@@ -1,0 +1,67 @@
+trizaval/
+├── Cargo.toml                          ✅ DONE — workspace root, 3 members registered
+├── crates/
+│   ├── trizaval-core/                  ✅ DONE — 40 passing tests
+│   │   ├── Cargo.toml                  ✅
+│   │   └── src/
+│   │       ├── lib.rs                  ✅
+│   │       ├── bootstrap.rs            ✅ DONE — block bootstrap, tested
+│   │       ├── sequential.rs           ✅ DONE — mixture SPRT, tested
+│   │       ├── correction.rs           ✅ DONE — Bonferroni + BH, tested
+│   │       ├── judge_calibration.rs    ✅ DONE — position + length bias, tested
+│   │       └── effect_size.rs          ✅ DONE — Cohen's d / Hedges' g, tested
+│   ├── trizaval-py/                    ✅ DONE — all 5 core modules bound
+│   │   ├── Cargo.toml                  ✅
+│   │   ├── pyproject.toml              ✅
+│   │   └── src/lib.rs                  ✅
+│   └── trizaval-cli/                   ✅ DONE — 6 subcommands, JSON+text output
+│       ├── Cargo.toml                  ✅
+│       └── src/main.rs                 ✅
+├── python/
+│   └── trizaval/                       ⚠️ PATH CORRECTION — this package actually lives at
+│       │                                  crates/trizaval-py/python/trizaval/, not here at
+│       │                                  top-level (flagged earlier when we started the
+│       │                                  harness — it must live alongside trizaval-py so
+│       │                                  maturin builds one coherent installable package).
+│       │                                  Everything below is done, just at that real path.
+│       ├── __init__.py                 ✅ DONE
+│       ├── harness/
+│       │   ├── runner.py               ✅ DONE — sequential + length-bias fully wired in
+│       │   ├── providers/
+│       │   │   ├── openai_provider.py       ✅ DONE
+│       │   │   ├── anthropic_provider.py    ✅ DONE
+│       │   │   └── local_provider.py        ⚠️ RENAMED — became openai_compatible_provider.py,
+│       │   │                                   deliberately generalized beyond just local models
+│       │   │                                   to cover DeepSeek/Grok/Kimi/Gemini/any OpenAI-
+│       │   │                                   compatible API, not just Ollama/vLLM
+│       │   └── judge.py                ✅ DONE — rule-based, LLM single, LLM pairwise w/ debiasing
+│       ├── suite/
+│       │   ├── loader.py               ✅ DONE
+│       │   └── schema.py               ✅ DONE
+│       ├── storage/
+│       │   ├── arrow_store.py          ❌ NOT STARTED
+│       │   └── duckdb_store.py         ❌ NOT STARTED
+│       └── cli.py                      ✅ DONE — `trizaval.cli run suite.yaml`, text+json
+├── dashboard/                          ❌ NOT STARTED
+│   ├── package.json
+│   ├── src/
+│   └── wasm/
+├── gateway/                            ❌ NOT STARTED (deliberately dormant, later phase)
+│   ├── go.mod
+│   └── cmd/
+│       └── trizaval-gateway/
+│           └── main.go
+├── bindings/
+│   └── r/                              ❌ NOT STARTED (deliberately dormant, stretch)
+├── suites/                             ✅ DONE
+│   └── example_suite.yaml              ✅ DONE — real, validated, used in tests
+├── tests/
+│   ├── rust/                           ⚠️ NO SEPARATE DIR — but trizaval-core's own 40 unit
+│   │                                       tests (in-file, #[cfg(test)]) already cover this
+│   │                                       ground; worth a decision on whether a separate
+│   │                                       integration-test crate is still wanted
+│   └── python/                         ✅ DONE — 61 passing tests (schema, loader, providers,
+│                                            judge, runner, cli)
+├── docs/                               ❌ NOT STARTED
+├── .github/workflows/ci.yml            ❌ NOT STARTED — nothing runs these tests automatically yet
+└── README.md                           ❌ NOT STARTED

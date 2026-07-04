@@ -1,0 +1,47 @@
+name: arithmetic-sanity-check
+description: >
+  A minimal example suite comparing a baseline and candidate model on
+  simple arithmetic questions, using rule-based exact-match judging
+  and a bootstrap confidence interval on accuracy.
+
+baseline:
+  name: baseline-gpt4o-mini
+  kind: openai
+  model: gpt-4o-mini
+  temperature: 0.0
+
+candidates:
+  - name: candidate-gpt4o
+    kind: openai
+    model: gpt-4o
+    temperature: 0.0
+
+test_cases:
+  - id: add-1
+    prompt: "What is 2 + 2? Answer with just the number."
+    reference: "4"
+  - id: add-2
+    prompt: "What is 17 + 26? Answer with just the number."
+    reference: "43"
+  - id: mult-1
+    prompt: "What is 6 * 7? Answer with just the number."
+    reference: "42"
+  - id: sub-1
+    prompt: "What is 100 - 37? Answer with just the number."
+    reference: "63"
+
+judge:
+  kind: rule_based
+  match_type: contains
+  case_sensitive: false
+
+statistics:
+  method: bootstrap
+  block_size: 1
+  n_resamples: 2000
+  confidence_level: 0.95
+  seed: 42
+
+correction:
+  method: benjamini_hochberg
+  alpha: 0.05
