@@ -28,8 +28,8 @@ export function ScoreTrendChart({ trend }: { trend: TrendData }) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="label" />
           <YAxis domain={[0, 1]} />
-          <Tooltip
-            formatter={(value: number) => value.toFixed(4)}
+<Tooltip
+            formatter={(value) => (typeof value === 'number' ? value.toFixed(4) : String(value))}
             labelFormatter={(label) => `Run date: ${label}`}
           />
           <Line type="monotone" dataKey="mean_score" stroke="#4f7cff" strokeWidth={2} dot={{ r: 4 }} />

@@ -93,8 +93,11 @@ export function ConfidenceIntervalChart({ report }: { report: SuiteReportData })
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="candidate" />
           <YAxis domain={[0, 1]} />
-          <Tooltip
-            formatter={(value: number, name: string) => [value.toFixed(4), name]}
+<Tooltip
+            formatter={(value, name) => [
+              typeof value === 'number' ? value.toFixed(4) : String(value),
+              String(name),
+            ]}
           />
 <Bar dataKey="mean" fill="#4f7cff">
             <ErrorBar
