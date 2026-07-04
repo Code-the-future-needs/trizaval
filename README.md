@@ -155,6 +155,14 @@ python3 -m trizaval.cli run suites/example_suite.yaml --format json
 
 Set your provider credentials as environment variables first, for example `OPENAI_API_KEY`.
 
+To persist the run's results for later trend analysis, add `--storage-dir`:
+
+```bash
+python3 -m trizaval.cli run suites/example_suite.yaml --storage-dir ./eval-history
+```
+
+Each run appends a new row to `<storage-dir>/<suite-name>.parquet`, so running the same suite repeatedly builds a queryable history over time. See the Storage and querying eval history section below.
+
 ## Quick start: Rust CLI
 
 ```bash
@@ -167,6 +175,29 @@ trizaval judge-pairwise --original-order prefers-a --swapped-order prefers-b
 ```
 
 Every command supports `--format json` for CI pipelines.
+
+## Storage and querying eval history
+
+Every suite's run history accumulates in `<storage-dir>/<suite-name>.parquet`, one Parquet file per suite. This can be queried directly with DuckDB, either through trizaval's own helper functions or with arbitrary SQL.
+
+```python
+from trizaval.storage.duckdb_store import score_trend, latest_run, query
+
+# Mean score for one candidate across every recorded run, oldest to newest
+trend = score_trend("./eval-history", "arithmetic-sanity-check", "candidate-gpt4o")
+
+# Every candidate's results from the most recent run only
+latest = latest_run("./eval-history", "arithmetic-sanity-check")
+
+# Arbitrary SQL against the suite's history file
+rows = query(
+    "./eval-history",
+    "arithmetic-sanity-check",
+    "SELECT DISTINCT candidate_name FROM {table}",
+)
+```
+
+`{table}` in a custom query is replaced with a reference to the suite's Parquet file, so any valid DuckDB SQL can be used, including joins, aggregations, and filters on `run_timestamp`.
 
 ## Testing
 
