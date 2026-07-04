@@ -146,6 +146,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "in addition to printing the report.",
     )
 
+    trend_parser = subparsers.add_parser(
+        "trend", help="Export a candidate's mean-score trend across recorded runs as JSON"
+    )
+    trend_parser.add_argument("storage_dir", help="Directory containing <suite_name>.parquet history files")
+    trend_parser.add_argument("suite_name", help="Suite name to query")
+    trend_parser.add_argument("candidate_name", help="Candidate name to query")
+    trend_parser.add_argument("--limit", type=int, default=None, help="Only include the N most recent runs")
+
     return parser
 
 
@@ -184,6 +192,36 @@ def main(argv: Optional[list[str]] = None) -> int:
                 return 0  # the eval run itself succeeded; storage failure is reported, not fatal
             print(f"Saved run to {path}", file=sys.stderr)
 
+        return 0
+
+    if args.command == "trend":
+        from trizaval.storage.arrow_store import StorageError
+        from trizaval.storage.duckdb_store import score_trend
+
+        try:
+            rows = score_trend(args.storage_dir, args.suite_name, args.candidate_name, limit=args.limit)
+        except StorageError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+
+        # Serialize timestamps to ISO strings -- datetime objects
+        # from DuckDB aren't directly JSON serializable, and ISO
+        # strings parse trivially and unambiguously in JavaScript.
+        serializable_rows = [
+            {
+                "run_id": r["run_id"],
+                "run_timestamp": r["run_timestamp"].isoformat(),
+                "mean_score": r["mean_score"],
+            }
+            for r in rows
+        ]
+
+        output = {
+            "suite_name": args.suite_name,
+            "candidate_name": args.candidate_name,
+            "trend": serializable_rows,
+        }
+        print(json.dumps(output, indent=2))
         return 0
 
     parser.print_help()

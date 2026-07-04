@@ -4,6 +4,7 @@ members = [
     "crates/trizaval-core",
     "crates/trizaval-py",
     "crates/trizaval-cli",
+    "crates/trizaval-wasm",
 ]
 
 [workspace.package]
