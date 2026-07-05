@@ -123,3 +123,67 @@ jobs:
       - name: Build dashboard
         working-directory: dashboard
         run: npm run build
+
+  r-bindings:
+    name: R bindings (build + test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "release"
+
+      - name: Install system dependencies for R packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libuv1-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            libjpeg-dev \
+            libpng-dev \
+            libtiff5-dev \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev
+
+      - name: Get R library path
+        id: r-lib-path
+        run: echo "path=$(Rscript -e 'cat(.libPaths()[1])')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.r-lib-path.outputs.path }}
+          key: ${{ runner.os }}-r-${{ hashFiles('bindings/r/trizavalr/DESCRIPTION') }}
+          restore-keys: |
+            ${{ runner.os }}-r-
+
+      - name: Cache cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            bindings/r/trizavalr/src/rust/target
+          key: ${{ runner.os }}-cargo-r-${{ hashFiles('bindings/r/trizavalr/src/rust/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-r-
+
+      - name: Install R package dependencies
+        working-directory: bindings/r/trizavalr
+        run: |
+          Rscript -e 'install.packages(c("devtools", "testthat", "rextendr"), repos = "https://cloud.r-project.org")'
+
+      - name: Build and test trizavalr
+        working-directory: bindings/r/trizavalr
+        run: |
+          Rscript -e 'devtools::test()'
+          
