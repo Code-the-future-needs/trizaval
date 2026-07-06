@@ -59,7 +59,22 @@ Adding a new OpenAI compatible provider is a configuration change, not a code ch
 
 ### Python
 
-Trizaval is not yet published to PyPI. To build and install it locally from source:
+```bash
+pip install trizaval
+```
+
+This installs the core statistics engine and evaluation harness with minimal required dependencies (`pydantic`, `pyyaml`). Provider integrations and the storage layer are optional extras:
+
+```bash
+pip install trizaval[openai]      # OpenAI and OpenAI-compatible providers
+pip install trizaval[anthropic]   # Anthropic provider
+pip install trizaval[storage]     # Parquet + DuckDB run history
+pip install trizaval[all]         # everything
+```
+
+Prebuilt wheels are provided for Python 3.9 through 3.13 on Linux (manylinux). Other platforms install from source and require a Rust toolchain (`cargo`, `rustc`).
+
+To build and install from source instead:
 
 ```bash
 git clone https://github.com/Code-the-future-needs/trizaval.git
@@ -69,9 +84,6 @@ source .venv/bin/activate
 pip install maturin
 maturin develop
 ```
-
-This builds the Rust core and installs an importable `trizaval` package into your active virtual environment.
-
 ### Rust CLI
 
 ```bash
